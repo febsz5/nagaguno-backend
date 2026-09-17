@@ -1,5 +1,6 @@
 // routes/kyc.js
 const express = require('express');
+const { ageFromBirthdate } = require('../utils/ageFromBirthdate');
 const path    = require('path');
 const multer  = require('multer');
 const { queryAsUser, withTransaction } = require('../config/database');
@@ -54,12 +55,12 @@ router.post(
   async (req, res) => {
     try {
       const { id: userId } = req.user;
-      const { age, date_of_birth, complete_address, contact_number, id_type } = req.body;
+      const { date_of_birth, complete_address, contact_number, id_type } = req.body;
 
       const errors = {};
-      const ageNum = parseInt(age, 10);
-      if (!ageNum || ageNum < 18 || ageNum > 120) errors.age = 'Age must be between 18 and 120.';
-      if (!date_of_birth) errors.date_of_birth = 'Date of birth is required.';
+      const ageNum = ageFromBirthdate(date_of_birth);
+      if (ageNum === null) errors.date_of_birth = 'Enter a valid date of birth.';
+      else if (ageNum < 18 || ageNum > 120) errors.date_of_birth = 'Your date of birth must indicate an age between 18 and 120.';
       if (!complete_address || complete_address.trim().length < 8)
         errors.complete_address = 'Enter your complete address (house/lot no., street, barangay, city).';
       if (!contact_number || !PH_PHONE_REGEX.test(contact_number))
