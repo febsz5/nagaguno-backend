@@ -95,9 +95,10 @@ const requireVerified = (req, res, next) => {
 
 const validateRegistration = (req, res, next) => {
   const schema = Joi.object({
-    full_name:    Joi.string().min(2).max(50).required()
+    full_name:    Joi.string().trim().min(2).max(50).pattern(/\p{Nd}/u, { invert: true }).required()
       .messages({
         'string.empty': 'Full name is required.',
+        'string.pattern.invert.base': 'Full name must not contain numbers.',
         'string.min':   'Full name must be at least 2 characters.',
         'string.max':   'Full name must not exceed 50 characters.',
       })
@@ -111,7 +112,7 @@ const validateRegistration = (req, res, next) => {
       .label('Email Address'),
 
     password:     Joi.string()
-      .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&\\.])[A-Za-z\\d@$!%*?&\\.]{8,}$'))
+      .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&\\._-])[A-Za-z\\d@$!%*?&\\._-]{8,}$'))
       .required()
       .messages({
         'string.empty':        'Password is required.',
@@ -222,7 +223,7 @@ const validateResetPassword = (req, res, next) => {
     user_id:      Joi.string().uuid().required().label('User ID'),
     otp:          Joi.string().length(6).required().label('Reset Code'),
     new_password: Joi.string()
-      .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&\\.])[A-Za-z\\d@$!%*?&\\.]{8,}$'))
+      .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&\\._-])[A-Za-z\\d@$!%*?&\\._-]{8,}$'))
       .required()
       .messages({ 'string.pattern.base': 'Password must be 8+ chars with Uppercase, Lowercase, Number, and Special Char.' })
       .label('New Password'),
