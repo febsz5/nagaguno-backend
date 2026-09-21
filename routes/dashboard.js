@@ -2,6 +2,7 @@
 const express   = require('express');
 const { query } = require('../config/database');
 const { authenticate, authorize } = require('../middleware/auth');
+const { sellerRevenueSql } = require('../utils/sellerRevenue');
 
 const router = express.Router();
 router.use(authenticate);
@@ -66,7 +67,7 @@ router.get('/farmer', authorize('farmer'), async (req, res) => {
   try {
     const { id } = req.user;
     const { rows } = await query(
-      `SELECT active_agreements, incoming_orders, this_month, next_harvest
+      `SELECT active_agreements, incoming_orders, ${sellerRevenueSql(true)} AS this_month, next_harvest
        FROM farmer_dashboard_stats WHERE user_id = $1`, [id]
     );
     const stats = rows[0] ?? { active_agreements:0, incoming_orders:0, this_month:0, next_harvest:null };
@@ -110,7 +111,8 @@ router.get('/vendor', authorize('vendor'), async (req, res) => {
   try {
     const { id } = req.user;
     const { rows } = await query(
-      `SELECT active_listings, total_orders, total_revenue, this_month, active_agreements
+      `SELECT active_listings, total_orders, ${sellerRevenueSql(false)} AS total_revenue,
+              ${sellerRevenueSql(true)} AS this_month, active_agreements
        FROM vendor_dashboard_stats WHERE user_id = $1`, [id]
     );
     const stats = rows[0] ?? { active_listings:0, total_orders:0, total_revenue:0, this_month:0, active_agreements:0 };
